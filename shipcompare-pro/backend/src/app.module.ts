@@ -13,6 +13,8 @@ import { LabelsModule } from './labels/labels.module';
 import { BulkModule } from './bulk/bulk.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AuthModule } from './auth/auth.module';
+import { PricingModule } from './pricing/pricing.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { AuthModule } from './auth/auth.module';
     BulkModule,
     AnalyticsModule,
     AuthModule,
+    PricingModule,
+    AdminModule,
   ],
 })
 export class AppModule {}
