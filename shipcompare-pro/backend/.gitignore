@@ -1,0 +1,28 @@
+# NestJS
+.DS_Store
+node_modules
+/dist
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Testing
+coverage
+.jest
+
+# Misc
+.cache
+temp
