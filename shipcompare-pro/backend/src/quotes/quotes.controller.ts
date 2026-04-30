@@ -1,25 +1,32 @@
-import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
-import { QuotesService, ShipmentInput, QuoteResult } from './quotes.service';
-import { ThrottleGuard } from '@nestjs/throttler';
+import { Controller, Post, Body, Get, Param, Logger } from '@nestjs/common';
+import { QuotesService } from './quotes.service';
+import { ShipmentInput } from './dto/shipment-input.dto';
+import { QuoteResult } from './dto/quote-result.dto';
 
 @Controller('quotes')
-@UseGuards(ThrottleGuard)
 export class QuotesController {
+  private readonly logger = new Logger(QuotesController.name);
+
   constructor(private readonly quotesService: QuotesService) {}
 
   @Post()
-  async getQuotes(@Body() shipmentInput: ShipmentInput): Promise<{ quoteId: string; results: QuoteResult[] }> {
-    const results = await this.quotesService.getQuotes(shipmentInput);
-    const quoteId = results.length > 0 ? results[0].id : `quote_${Date.now()}`;
-    
-    return {
-      quoteId,
-      results,
-    };
+  async getQuotes(@Body() shipment: ShipmentInput): Promise<{
+    quotes: QuoteResult[];
+    expiresAt: Date;
+    quoteSessionId: string;
+  }> {
+    this.logger.log(`Received quote request for shipment from ${shipment.origin.zip} to ${shipment.destination.zip}`);
+    return await this.quotesService.getQuotes(shipment);
   }
 
   @Get(':id')
-  async getCachedQuote(@Param('id') quoteId: string): Promise<QuoteResult | null> {
-    return this.quotesService.getCachedQuote(quoteId);
+  async getQuoteById(@Param('id') id: string): Promise<{
+    quotes: QuoteResult[];
+    expiresAt: Date;
+    quoteSessionId: string;
+  } | null> {
+    // TODO: Implement quote retrieval from cache/database
+    this.logger.log(`Retrieving quote by ID: ${id}`);
+    return null; // Placeholder
   }
 }

@@ -1,84 +1,48 @@
-import { Injectable } from '@nestjs/common';
-import { CarrierService } from '../carriers/carrier.service';
-
-export interface ShipmentInput {
-  origin: Address;
-  destination: Address;
-  package: PackageDetails;
-  options?: ShipmentOptions;
-}
-
-export interface Address {
-  street1: string;
-  street2?: string;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
-  isResidential?: boolean;
-}
-
-export interface PackageDetails {
-  weight: number;
-  weightUnit: 'lb' | 'kg';
-  length: number;
-  width: number;
-  height: number;
-  dimensionUnit: 'in' | 'cm';
-  packageType?: 'parcel' | 'envelope' | 'pallet';
-}
-
-export interface ShipmentOptions {
-  declaredValue?: number;
-  signatureRequired?: boolean;
-  hazmat?: boolean;
-  saturdayDelivery?: boolean;
-  deliveryDate?: string;
-}
-
-export interface QuoteResult {
-  id: string;
-  carrier: string;
-  serviceName: string;
-  baseRate: number;
-  surcharges: Surcharge[];
-  totalCost: number;
-  currency: string;
-  estimatedDeliveryDate: string;
-  transitDays: number;
-  reliabilityScore?: number;
-  trackingIncluded: boolean;
-  insuranceIncluded: boolean;
-}
-
-export interface Surcharge {
-  type: string;
-  description: string;
-  amount: number;
-}
+import { Injectable, Logger } from '@nestjs/common';
+import { CarriersService } from '../carriers/carriers.service';
+import { ShipmentInput } from './dto/shipment-input.dto';
+import { QuoteResult } from './dto/quote-result.dto';
 
 @Injectable()
 export class QuotesService {
-  constructor(private readonly carrierService: CarrierService) {}
+  private readonly logger = new Logger(QuotesService.name);
 
-  async getQuotes(shipmentInput: ShipmentInput): Promise<QuoteResult[]> {
-    // Fan out requests to all carriers in parallel
-    const results = await this.carrierService.getRatesFromAllCarriers(shipmentInput);
-    
-    // Filter out failed requests and sort by total cost
-    const successfulQuotes = results
-      .filter((result): result is QuoteResult => result !== null)
-      .sort((a, b) => a.totalCost - b.totalCost);
+  constructor(private readonly carriersService: CarriersService) {}
 
-    return successfulQuotes;
-  }
+  /**
+   * Get quotes from all carriers for a given shipment.
+   * Results are sorted by total cost (ascending) by default.
+   */
+  async getQuotes(shipment: ShipmentInput): Promise<{
+    quotes: QuoteResult[];
+    expiresAt: Date;
+    quoteSessionId: string;
+  }> {
+    const { results, errors } = await this.carriersService.getRatesFromAllCarriers(shipment);
 
-  async getCachedQuote(quoteId: string): Promise<QuoteResult | null> {
-    // TODO: Implement Redis caching
-    return null;
-  }
+    // Sort by total cost (ascending)
+    const sortedQuotes = results.sort((a, b) => a.totalCost - b.totalCost);
 
-  private generateQuoteId(): string {
-    return `quote_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Mark cheapest and fastest options
+    if (sortedQuotes.length > 0) {
+      sortedQuotes[0].isCheapest = true;
+      
+      // Find fastest (shortest transit days)
+      const fastest = sortedQuotes.reduce((min, q) => 
+        q.transitDays < min.transitDays ? q : min
+      );
+      fastest.isFastest = true;
+    }
+
+    const quoteSessionId = `qs_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    this.logger.log(`Generated ${sortedQuotes.length} quotes, session: ${quoteSessionId}`);
+
+    return {
+      quotes: sortedQuotes,
+      expiresAt,
+      quoteSessionId,
+    };
   }
 }

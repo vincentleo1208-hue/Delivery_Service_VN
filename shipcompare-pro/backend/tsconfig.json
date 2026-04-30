@@ -18,15 +18,16 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@quotes/*": ["src/quotes/*"],
+      "@/*": ["src/*"],
       "@carriers/*": ["src/carriers/*"],
-      "@auth/*": ["src/auth/*"],
+      "@quotes/*": ["src/quotes/*"],
       "@users/*": ["src/users/*"],
       "@addresses/*": ["src/addresses/*"],
       "@shipments/*": ["src/shipments/*"],
       "@labels/*": ["src/labels/*"],
       "@bulk/*": ["src/bulk/*"],
-      "@jobs/*": ["src/jobs/*"],
+      "@analytics/*": ["src/analytics/*"],
+      "@auth/*": ["src/auth/*"],
       "@common/*": ["src/common/*"]
     }
   },

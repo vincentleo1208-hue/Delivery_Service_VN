@@ -1,52 +1,40 @@
 ```
 # Dependencies
 node_modules/
+.npm/
+.yarn/
 
 # Build outputs
 dist/
 build/
-target/
+.next/
+.nuxt/
+out/
+
+# TypeScript
+*.tsbuildinfo
+*.tsx
+*.ts
 
 # Environment variables
 .env
 .env.local
 .env.*
 
-# IDE specific
+# IDE files
 .vscode/
 .idea/
-
-# Python related (if any Python in project)
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.pytest_cache/
-.mypy_cache/
+*.swp
+*.swo
 
 # Logs
 *.log
 
-# OS generated files
-.DS_Store
-Thumbs.db
-
 # Temporary files
 *.tmp
 *.temp
-*.swp
-*.swo
 
-# Coverage reports
+# Coverage
 coverage/
-htmlcov/
-.coverage
-
-# NestJS specific
 .nyc_output/
-coverage/
-
-# TypeScript/JavaScript build
-*.js.map
-*.tsbuildinfo
 ```
