@@ -18,10 +18,16 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["src/*"],
-      "@modules/*": ["src/modules/*"],
-      "@common/*": ["src/common/*"],
-      "@config/*": ["src/config/*"]
+      "@quotes/*": ["src/quotes/*"],
+      "@carriers/*": ["src/carriers/*"],
+      "@auth/*": ["src/auth/*"],
+      "@users/*": ["src/users/*"],
+      "@addresses/*": ["src/addresses/*"],
+      "@shipments/*": ["src/shipments/*"],
+      "@labels/*": ["src/labels/*"],
+      "@bulk/*": ["src/bulk/*"],
+      "@jobs/*": ["src/jobs/*"],
+      "@common/*": ["src/common/*"]
     }
   },
   "include": ["src/**/*"],

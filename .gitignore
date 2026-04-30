@@ -12,35 +12,41 @@ target/
 .env.local
 .env.*
 
-# IDE files
+# IDE specific
 .vscode/
 .idea/
-*.swp
-*.swo
 
-# Python cache (if any Python files exist in the project)
+# Python related (if any Python in project)
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.pytest_cache/
+.mypy_cache/
 
 # Logs
 *.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
 
 # Coverage reports
 coverage/
 htmlcov/
 .coverage
 
-# Temporary files
-*.tmp
-*.temp
+# NestJS specific
+.nyc_output/
+coverage/
 
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Backup files
-*.bak
-*.backup
+# TypeScript/JavaScript build
+*.js.map
+*.tsbuildinfo
 ```
