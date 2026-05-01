@@ -1,0 +1,61 @@
+# ShipCompare Pro - .dockerignore
+# Optimized for minimal image size and memory usage
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Development files
+.env.example
+.env.local
+.env.development
+.env.test
+
+# Node modules (will be rebuilt in container)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build outputs (will be rebuilt in container)
+dist/
+out/
+.next/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+coverage/
+*.test.ts
+*.spec.ts
+__tests__/
+test/
+tests/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+.cache/
+
+# Docker compose (not needed in image)
+docker-compose*.yml
+
+# Scripts not needed in production
+scripts/
