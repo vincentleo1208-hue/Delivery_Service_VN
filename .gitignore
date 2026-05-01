@@ -5,28 +5,7 @@ node_modules/
 # Build artifacts
 dist/
 build/
-.next/
-out/
-
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Environment variables
-.env
-.env.local
-*.env.*
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Logs
-*.log
+target/
 
 # Python
 __pycache__/
@@ -37,31 +16,65 @@ __pycache__/
 env/
 venv/
 .venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-.git/modules/
-
-# MyPy
+.ENV
+.env
+.env.local
+.env.
+.python-version
 .mypy_cache/
-
-# PyTest
 .pytest_cache/
+.coverage
+coverage/
 
-# Distribution / packaging
-*.tar.gz
-*.whl
-*.egg
-*.egg-info/
+# Logs
+*.log
 
 # OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# Environment specific
+.env
+.env.local
+*.env.*
+
+# Coverage
+coverage/
+htmlcov/
+
+# Compressed files
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
 ```
