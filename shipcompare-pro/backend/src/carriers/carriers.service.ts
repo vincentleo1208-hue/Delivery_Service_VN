@@ -12,9 +12,19 @@ export class CarriersService {
   private readonly logger = new Logger(CarriersService.name);
   private readonly carriers: Map<string, ICarrierAdapter> = new Map();
 
-  constructor(private readonly fedexAdapter: ICarrierAdapter) {
+  constructor(
+    private readonly fedexAdapter: ICarrierAdapter,
+    private readonly upsAdapter: ICarrierAdapter,
+    private readonly dhlAdapter: ICarrierAdapter,
+    private readonly uspsAdapter: ICarrierAdapter,
+    private readonly consolidatedAdapter: ICarrierAdapter,
+  ) {
     // Register available carriers
     this.registerCarrier(fedexAdapter);
+    this.registerCarrier(upsAdapter);
+    this.registerCarrier(dhlAdapter);
+    this.registerCarrier(uspsAdapter);
+    this.registerCarrier(consolidatedAdapter);
   }
 
   /**

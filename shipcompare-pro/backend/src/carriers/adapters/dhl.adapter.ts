@@ -1,22 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  ICarrierAdapter,
-  PurchaseLabelResult,
-  TrackingEvent,
-} from '../carrier.service';
-import { ShipmentInput, QuoteResult } from '../../quotes/quotes.service';
+import { ICarrierAdapter, TrackingEvent } from '../interfaces/carrier-adapter.interface';
+import { ShipmentInput } from '../../quotes/dto/shipment-input.dto';
+import { QuoteResult } from '../../quotes/dto/quote-result.dto';
+import { BaseCarrierAdapter } from './base-carrier.adapter';
 
 @Injectable()
-export class DHLAdapter implements ICarrierAdapter {
+export class DHLAdapter extends BaseCarrierAdapter implements ICarrierAdapter {
+  readonly carrierId = 'dhl';
+  readonly carrierName = 'DHL';
+
   private readonly apiKey: string;
 
   constructor(private readonly configService: ConfigService) {
+    super();
     this.apiKey = this.configService.get('DHL_API_KEY') || '';
-  }
-
-  getCarrierName(): string {
-    return 'DHL';
   }
 
   async getRates(shipment: ShipmentInput): Promise<QuoteResult[]> {
@@ -34,7 +32,11 @@ export class DHLAdapter implements ICarrierAdapter {
     }
   }
 
-  async purchaseLabel(quote: QuoteResult): Promise<PurchaseLabelResult> {
+  async purchaseLabel(quoteId: string, paymentMethodId: string): Promise<{
+    labelUrl: string;
+    trackingNumber: string;
+    labelFormat: string;
+  }> {
     throw new Error('DHL label purchase not yet implemented');
   }
 
@@ -52,45 +54,45 @@ export class DHLAdapter implements ICarrierAdapter {
     return [
       {
         id: `dhl_express_${Date.now()}`,
-        carrier: 'DHL',
+        carrierId: this.carrierId,
+        carrierName: this.carrierName,
         serviceName: 'DHL Express Worldwide',
+        serviceCode: 'EXPRESS_WORLDWIDE',
         baseRate: parseFloat(baseRate.toFixed(2)),
         surcharges: [],
         totalCost: parseFloat(baseRate.toFixed(2)),
         currency: 'USD',
-        estimatedDeliveryDate: new Date(Date.now() + 3 * 86400000).toISOString(),
+        estimatedDeliveryDate: new Date(Date.now() + 3 * 86400000),
         transitDays: 3,
         reliabilityScore: 0.93,
-        trackingIncluded: true,
-        insuranceIncluded: false,
       },
       {
         id: `dhl_express_12_${Date.now()}`,
-        carrier: 'DHL',
+        carrierId: this.carrierId,
+        carrierName: this.carrierName,
         serviceName: 'DHL Express 12:00',
+        serviceCode: 'EXPRESS_12',
         baseRate: parseFloat((baseRate * 1.5).toFixed(2)),
         surcharges: [],
         totalCost: parseFloat((baseRate * 1.5).toFixed(2)),
         currency: 'USD',
-        estimatedDeliveryDate: new Date(Date.now() + 2 * 86400000).toISOString(),
+        estimatedDeliveryDate: new Date(Date.now() + 2 * 86400000),
         transitDays: 2,
         reliabilityScore: 0.95,
-        trackingIncluded: true,
-        insuranceIncluded: false,
       },
       {
         id: `dhl_express_9_${Date.now()}`,
-        carrier: 'DHL',
+        carrierId: this.carrierId,
+        carrierName: this.carrierName,
         serviceName: 'DHL Express 9:00',
+        serviceCode: 'EXPRESS_9',
         baseRate: parseFloat((baseRate * 2).toFixed(2)),
         surcharges: [],
         totalCost: parseFloat((baseRate * 2).toFixed(2)),
         currency: 'USD',
-        estimatedDeliveryDate: new Date(Date.now() + 86400000).toISOString(),
+        estimatedDeliveryDate: new Date(Date.now() + 86400000),
         transitDays: 1,
         reliabilityScore: 0.96,
-        trackingIncluded: true,
-        insuranceIncluded: false,
       },
     ];
   }
