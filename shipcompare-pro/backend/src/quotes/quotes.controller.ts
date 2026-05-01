@@ -14,6 +14,7 @@ export class QuotesController {
     quotes: QuoteResult[];
     expiresAt: Date;
     quoteSessionId: string;
+    openRouterRate?: QuoteResult;
   }> {
     this.logger.log(`Received quote request for shipment from ${shipment.origin.zip} to ${shipment.destination.zip}`);
     return await this.quotesService.getQuotes(shipment);

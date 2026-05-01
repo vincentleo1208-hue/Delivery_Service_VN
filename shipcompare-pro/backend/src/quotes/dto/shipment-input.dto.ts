@@ -67,6 +67,11 @@ export class ShipmentInput {
   @IsOptional()
   weightUnit?: 'lb' | 'kg';
 
+  @ValidateNested({ each: true })
+  @IsOptional()
+  @Type(() => PackageDto)
+  packages?: PackageDto[];
+
   @ValidateNested()
   @IsOptional()
   @Type(() => PackageDimensionsDto)
@@ -83,6 +88,14 @@ export class ShipmentInput {
 
   @IsBoolean()
   @IsOptional()
+  isHighValue?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  containsFoodOrSupplements?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
   signatureRequired?: boolean;
 
   @IsBoolean()
@@ -96,4 +109,23 @@ export class ShipmentInput {
   @IsString()
   @IsOptional()
   preferredDeliveryDate?: string;
+}
+
+export class PackageDto {
+  @IsNumber()
+  @Min(0.1)
+  weight: number;
+
+  @IsString()
+  @IsOptional()
+  weightUnit?: 'lb' | 'kg';
+
+  @ValidateNested()
+  @IsOptional()
+  @Type(() => PackageDimensionsDto)
+  dimensions?: PackageDimensionsDto;
+
+  @IsEnum(PackageType)
+  @IsOptional()
+  packageType?: PackageType;
 }

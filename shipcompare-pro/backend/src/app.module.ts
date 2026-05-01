@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Modules
 import { CarriersModule } from './carriers/carriers.module';
@@ -15,6 +16,11 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { AuthModule } from './auth/auth.module';
 import { PricingModule } from './pricing/pricing.module';
 import { AdminModule } from './admin/admin.module';
+import { LeadsModule } from './leads/leads.module';
+
+// Entities
+import { User } from './users/user.entity';
+import { Lead } from './leads/lead.entity';
 
 @Module({
   imports: [
@@ -22,6 +28,18 @@ import { AdminModule } from './admin/admin.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+
+    // Database
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      username: process.env.DB_USERNAME || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      database: process.env.DB_NAME || 'shipcompare',
+      entities: [User, Lead],
+      synchronize: process.env.NODE_ENV !== 'production',
     }),
 
     // Rate limiting
@@ -47,6 +65,7 @@ import { AdminModule } from './admin/admin.module';
     AuthModule,
     PricingModule,
     AdminModule,
+    LeadsModule,
   ],
 })
 export class AppModule {}
