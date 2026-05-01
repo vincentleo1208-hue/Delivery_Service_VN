@@ -1,26 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  ICarrierAdapter,
-  PurchaseLabelResult,
-  TrackingEvent,
-} from '../carrier.service';
-import { ShipmentInput, QuoteResult } from '../../quotes/quotes.service';
+import { ICarrierAdapter, TrackingEvent } from '../interfaces/carrier-adapter.interface';
+import { ShipmentInput } from '../../quotes/dto/shipment-input.dto';
+import { QuoteResult } from '../../quotes/dto/quote-result.dto';
+import { BaseCarrierAdapter } from './base-carrier.adapter';
 
 @Injectable()
-export class UPSAdapter implements ICarrierAdapter {
+export class UPSAdapter extends BaseCarrierAdapter implements ICarrierAdapter {
+  readonly carrierId = 'ups';
+  readonly carrierName = 'UPS';
+
   private readonly apiKey: string;
   private readonly clientId: string;
   private readonly clientSecret: string;
 
   constructor(private readonly configService: ConfigService) {
+    super();
     this.apiKey = this.configService.get('UPS_API_KEY') || '';
     this.clientId = this.configService.get('UPS_CLIENT_ID') || '';
     this.clientSecret = this.configService.get('UPS_CLIENT_SECRET') || '';
-  }
-
-  getCarrierName(): string {
-    return 'UPS';
   }
 
   async getRates(shipment: ShipmentInput): Promise<QuoteResult[]> {
@@ -38,7 +36,11 @@ export class UPSAdapter implements ICarrierAdapter {
     }
   }
 
-  async purchaseLabel(quote: QuoteResult): Promise<PurchaseLabelResult> {
+  async purchaseLabel(quoteId: string, paymentMethodId: string): Promise<{
+    labelUrl: string;
+    trackingNumber: string;
+    labelFormat: string;
+  }> {
     throw new Error('UPS label purchase not yet implemented');
   }
 
@@ -56,45 +58,45 @@ export class UPSAdapter implements ICarrierAdapter {
     return [
       {
         id: `ups_ground_${Date.now()}`,
-        carrier: 'UPS',
+        carrierId: this.carrierId,
+        carrierName: this.carrierName,
         serviceName: 'UPS Ground',
+        serviceCode: 'GROUND',
         baseRate: parseFloat(baseRate.toFixed(2)),
         surcharges: [],
         totalCost: parseFloat(baseRate.toFixed(2)),
         currency: 'USD',
-        estimatedDeliveryDate: new Date(Date.now() + 4 * 86400000).toISOString(),
+        estimatedDeliveryDate: new Date(Date.now() + 4 * 86400000),
         transitDays: 4,
         reliabilityScore: 0.94,
-        trackingIncluded: true,
-        insuranceIncluded: false,
       },
       {
         id: `ups_3day_${Date.now()}`,
-        carrier: 'UPS',
+        carrierId: this.carrierId,
+        carrierName: this.carrierName,
         serviceName: 'UPS 3 Day Select',
+        serviceCode: 'THREE_DAY_SELECT',
         baseRate: parseFloat((baseRate * 1.8).toFixed(2)),
         surcharges: [],
         totalCost: parseFloat((baseRate * 1.8).toFixed(2)),
         currency: 'USD',
-        estimatedDeliveryDate: new Date(Date.now() + 3 * 86400000).toISOString(),
+        estimatedDeliveryDate: new Date(Date.now() + 3 * 86400000),
         transitDays: 3,
         reliabilityScore: 0.96,
-        trackingIncluded: true,
-        insuranceIncluded: false,
       },
       {
         id: `ups_next_day_${Date.now()}`,
-        carrier: 'UPS',
+        carrierId: this.carrierId,
+        carrierName: this.carrierName,
         serviceName: 'UPS Next Day Air',
+        serviceCode: 'NEXT_DAY_AIR',
         baseRate: parseFloat((baseRate * 3.2).toFixed(2)),
         surcharges: [],
         totalCost: parseFloat((baseRate * 3.2).toFixed(2)),
         currency: 'USD',
-        estimatedDeliveryDate: new Date(Date.now() + 86400000).toISOString(),
+        estimatedDeliveryDate: new Date(Date.now() + 86400000),
         transitDays: 1,
         reliabilityScore: 0.97,
-        trackingIncluded: true,
-        insuranceIncluded: false,
       },
     ];
   }

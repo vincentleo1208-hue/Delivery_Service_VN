@@ -1,22 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  ICarrierAdapter,
-  PurchaseLabelResult,
-  TrackingEvent,
-} from '../carrier.service';
-import { ShipmentInput, QuoteResult } from '../../quotes/quotes.service';
+import { ICarrierAdapter, TrackingEvent } from '../interfaces/carrier-adapter.interface';
+import { ShipmentInput } from '../../quotes/dto/shipment-input.dto';
+import { QuoteResult } from '../../quotes/dto/quote-result.dto';
+import { BaseCarrierAdapter } from './base-carrier.adapter';
 
 @Injectable()
-export class USPSAdapter implements ICarrierAdapter {
+export class USPSAdapter extends BaseCarrierAdapter implements ICarrierAdapter {
+  readonly carrierId = 'usps';
+  readonly carrierName = 'USPS';
+
   private readonly userId: string;
 
   constructor(private readonly configService: ConfigService) {
+    super();
     this.userId = this.configService.get('USPS_USER_ID') || '';
-  }
-
-  getCarrierName(): string {
-    return 'USPS';
   }
 
   async getRates(shipment: ShipmentInput): Promise<QuoteResult[]> {
@@ -34,7 +32,11 @@ export class USPSAdapter implements ICarrierAdapter {
     }
   }
 
-  async purchaseLabel(quote: QuoteResult): Promise<PurchaseLabelResult> {
+  async purchaseLabel(quoteId: string, paymentMethodId: string): Promise<{
+    labelUrl: string;
+    trackingNumber: string;
+    labelFormat: string;
+  }> {
     throw new Error('USPS label purchase not yet implemented');
   }
 
@@ -52,45 +54,45 @@ export class USPSAdapter implements ICarrierAdapter {
     return [
       {
         id: `usps_ground_${Date.now()}`,
-        carrier: 'USPS',
+        carrierId: this.carrierId,
+        carrierName: this.carrierName,
         serviceName: 'USPS Ground Advantage',
+        serviceCode: 'GROUND_ADVANTAGE',
         baseRate: parseFloat(baseRate.toFixed(2)),
         surcharges: [],
         totalCost: parseFloat(baseRate.toFixed(2)),
         currency: 'USD',
-        estimatedDeliveryDate: new Date(Date.now() + 5 * 86400000).toISOString(),
+        estimatedDeliveryDate: new Date(Date.now() + 5 * 86400000),
         transitDays: 5,
         reliabilityScore: 0.91,
-        trackingIncluded: true,
-        insuranceIncluded: false,
       },
       {
         id: `usps_priority_${Date.now()}`,
-        carrier: 'USPS',
+        carrierId: this.carrierId,
+        carrierName: this.carrierName,
         serviceName: 'USPS Priority Mail',
+        serviceCode: 'PRIORITY',
         baseRate: parseFloat((baseRate * 1.6).toFixed(2)),
         surcharges: [],
         totalCost: parseFloat((baseRate * 1.6).toFixed(2)),
         currency: 'USD',
-        estimatedDeliveryDate: new Date(Date.now() + 3 * 86400000).toISOString(),
+        estimatedDeliveryDate: new Date(Date.now() + 3 * 86400000),
         transitDays: 3,
         reliabilityScore: 0.93,
-        trackingIncluded: true,
-        insuranceIncluded: false,
       },
       {
         id: `usps_express_${Date.now()}`,
-        carrier: 'USPS',
+        carrierId: this.carrierId,
+        carrierName: this.carrierName,
         serviceName: 'USPS Priority Mail Express',
+        serviceCode: 'EXPRESS',
         baseRate: parseFloat((baseRate * 3).toFixed(2)),
         surcharges: [],
         totalCost: parseFloat((baseRate * 3).toFixed(2)),
         currency: 'USD',
-        estimatedDeliveryDate: new Date(Date.now() + 86400000).toISOString(),
+        estimatedDeliveryDate: new Date(Date.now() + 86400000),
         transitDays: 1,
         reliabilityScore: 0.95,
-        trackingIncluded: true,
-        insuranceIncluded: false,
       },
     ];
   }
