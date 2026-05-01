@@ -2,11 +2,17 @@
 # Dependencies
 node_modules/
 
-# Build outputs
+# Build artifacts
 dist/
 build/
 .next/
 out/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 # Environment variables
 .env
@@ -42,4 +48,20 @@ coverage.xml
 *.cover
 *.log
 .git/modules/
+
+# MyPy
+.mypy_cache/
+
+# PyTest
+.pytest_cache/
+
+# Distribution / packaging
+*.tar.gz
+*.whl
+*.egg
+*.egg-info/
+
+# OS generated files
+.DS_Store
+Thumbs.db
 ```
