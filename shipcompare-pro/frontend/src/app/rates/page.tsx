@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { Address, PackageDetails, RateQuote, ContactInfo } from '@/types';
+import { Address, PackageDetails, RateQuote, ContactInfo, QuoteRequest, LeadSubmission, PackageDimensions } from '@/types';
+import { ApiService } from '@/lib/api';
 
 // Mock data for cities (in production, this would come from an API)
 const CITIES: Record<string, { name: string; state?: string; country: string }[]> = {
@@ -52,14 +53,16 @@ export default function RatesPage() {
   const [packages, setPackages] = useState<PackageDetails[]>([
     { weight: 5, weightUnit: 'lb', length: 10, width: 8, height: 6, dimensionUnit: 'in' },
   ]);
-  const [isGuaranteed, setIsGuaranteed] = useState(false);
-  const [hasFoodSupplements, setHasFoodSupplements] = useState(false);
+  const [isHighValue, setIsHighValue] = useState(false); // Renamed from isGuaranteed
+  const [containsFoodOrSupplements, setContainsFoodOrSupplements] = useState(false); // Renamed from hasFoodSupplements
   const [quotes, setQuotes] = useState<RateQuote[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<RateQuote | null>(null);
   const [contactInfo, setContactInfo] = useState<ContactInfo>({ email: '', phone: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [quoteSessionId] = useState<string>(() => ApiService.generateSessionId());
 
   const addPackage = () => {
     setPackages([...packages, { weight: 1, weightUnit: 'lb' }]);
@@ -77,88 +80,128 @@ export default function RatesPage() {
 
   const handleShowRates = async () => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    setError(null);
     
-    // Mock quotes
-    const mockQuotes: RateQuote[] = [
-      {
-        id: 'fedex-1',
-        carrierId: 'fedex',
-        carrierName: 'FedEx',
-        serviceName: 'International Economy',
-        serviceCode: 'FEDEX_IE',
-        baseRate: 45.00,
-        surcharges: [{ name: 'Fuel Surcharge', amount: 6.75 }],
-        totalCost: 51.75,
-        currency: 'USD',
-        estimatedDeliveryDate: '2024-05-15',
-        transitDays: 5,
-        reliabilityScore: 0.95,
-        directLink: 'https://www.fedex.com/rates',
-      },
-      {
-        id: 'ups-1',
-        carrierId: 'ups',
-        carrierName: 'UPS',
-        serviceName: 'Worldwide Expedited',
-        serviceCode: 'UPS_WE',
-        baseRate: 52.00,
-        surcharges: [{ name: 'Fuel Surcharge', amount: 7.80 }],
-        totalCost: 59.80,
-        currency: 'USD',
-        estimatedDeliveryDate: '2024-05-14',
-        transitDays: 4,
-        reliabilityScore: 0.94,
-        directLink: 'https://www.ups.com/rates',
-      },
-      {
-        id: 'dhl-1',
-        carrierId: 'dhl',
-        carrierName: 'DHL',
-        serviceName: 'Express Worldwide',
-        serviceCode: 'DHL_EW',
-        baseRate: 58.00,
-        surcharges: [{ name: 'Fuel Surcharge', amount: 8.70 }],
-        totalCost: 66.70,
-        currency: 'USD',
-        estimatedDeliveryDate: '2024-05-13',
-        transitDays: 3,
-        reliabilityScore: 0.96,
-        directLink: 'https://www.dhl.com/rates',
-      },
-      {
-        id: 'sc-consolidated-economy',
-        carrierId: 'shipcompare-consolidated',
-        carrierName: 'ShipCompare Open Router',
-        serviceName: 'Open Router Economy',
-        serviceCode: 'OPEN_ROUTER_ECONOMY',
-        baseRate: 22.50,
-        surcharges: [{ name: 'Consolidation Handling', amount: 2.00 }],
-        totalCost: 24.50,
-        currency: 'USD',
-        estimatedDeliveryDate: '2024-05-18',
-        transitDays: 8,
-        reliabilityScore: 0.92,
-      },
-      {
-        id: 'sc-consolidated-standard',
-        carrierId: 'shipcompare-consolidated',
-        carrierName: 'ShipCompare Open Router',
-        serviceName: 'Open Router Standard',
-        serviceCode: 'OPEN_ROUTER_STANDARD',
-        baseRate: 28.00,
-        surcharges: [{ name: 'Consolidation Handling', amount: 2.00 }],
-        totalCost: 30.00,
-        currency: 'USD',
-        estimatedDeliveryDate: '2024-05-15',
-        transitDays: 6,
-        reliabilityScore: 0.94,
-      },
-    ];
-    
-    setQuotes(mockQuotes);
-    setIsLoading(false);
+    try {
+      // Build the shipment input matching backend DTO
+      const shipmentData: QuoteRequest = {
+        origin: {
+          street1: '', // Will be filled by backend geocoding or left empty
+          city: originCity,
+          state: originCountry === 'US' ? (originCities.find(c => c.name === originCity)?.state || '') : '',
+          zip: '',
+          country: originCountry,
+        },
+        destination: {
+          street1: '',
+          city: destinationCity,
+          state: destinationCountry === 'US' ? (destinationCities.find(c => c.name === destinationCity)?.state || '') : '',
+          zip: '',
+          country: destinationCountry,
+        },
+        weight,
+        weightUnit,
+        packages: packages.map(pkg => ({
+          weight: pkg.weight,
+          weightUnit: pkg.weightUnit,
+          dimensions: pkg.length && pkg.width && pkg.height ? {
+            length: pkg.length,
+            width: pkg.width,
+            height: pkg.height,
+            unit: pkg.dimensionUnit || 'in',
+          } : undefined,
+        })),
+        isHighValue,
+        containsFoodOrSupplements,
+      };
+
+      const responseQuotes = await ApiService.getQuotes(shipmentData);
+      setQuotes(responseQuotes);
+    } catch (err) {
+      console.error('Error fetching quotes:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch quotes. Please try again.');
+      
+      // Fallback to mock data for demonstration
+      const mockQuotes: RateQuote[] = [
+        {
+          id: 'fedex-1',
+          carrierId: 'fedex',
+          carrierName: 'FedEx',
+          serviceName: 'International Economy',
+          serviceCode: 'FEDEX_IE',
+          baseRate: 45.00,
+          surcharges: [{ name: 'Fuel Surcharge', amount: 6.75 }],
+          totalCost: 51.75,
+          currency: 'USD',
+          estimatedDeliveryDate: '2024-05-15',
+          transitDays: 5,
+          reliabilityScore: 0.95,
+          directLink: 'https://www.fedex.com/rates',
+        },
+        {
+          id: 'ups-1',
+          carrierId: 'ups',
+          carrierName: 'UPS',
+          serviceName: 'Worldwide Expedited',
+          serviceCode: 'UPS_WE',
+          baseRate: 52.00,
+          surcharges: [{ name: 'Fuel Surcharge', amount: 7.80 }],
+          totalCost: 59.80,
+          currency: 'USD',
+          estimatedDeliveryDate: '2024-05-14',
+          transitDays: 4,
+          reliabilityScore: 0.94,
+          directLink: 'https://www.ups.com/rates',
+        },
+        {
+          id: 'dhl-1',
+          carrierId: 'dhl',
+          carrierName: 'DHL',
+          serviceName: 'Express Worldwide',
+          serviceCode: 'DHL_EW',
+          baseRate: 58.00,
+          surcharges: [{ name: 'Fuel Surcharge', amount: 8.70 }],
+          totalCost: 66.70,
+          currency: 'USD',
+          estimatedDeliveryDate: '2024-05-13',
+          transitDays: 3,
+          reliabilityScore: 0.96,
+          directLink: 'https://www.dhl.com/rates',
+        },
+        {
+          id: 'sc-consolidated-economy',
+          carrierId: 'shipcompare-consolidated',
+          carrierName: 'ShipCompare Open Router',
+          serviceName: 'Open Router Economy',
+          serviceCode: 'OPEN_ROUTER_ECONOMY',
+          baseRate: 22.50,
+          surcharges: [{ name: 'Consolidation Handling', amount: 2.00 }],
+          totalCost: 24.50,
+          currency: 'USD',
+          estimatedDeliveryDate: '2024-05-18',
+          transitDays: 8,
+          reliabilityScore: 0.92,
+        },
+        {
+          id: 'sc-consolidated-standard',
+          carrierId: 'shipcompare-consolidated',
+          carrierName: 'ShipCompare Open Router',
+          serviceName: 'Open Router Standard',
+          serviceCode: 'OPEN_ROUTER_STANDARD',
+          baseRate: 28.00,
+          surcharges: [{ name: 'Consolidation Handling', amount: 2.00 }],
+          totalCost: 30.00,
+          currency: 'USD',
+          estimatedDeliveryDate: '2024-05-15',
+          transitDays: 6,
+          reliabilityScore: 0.94,
+        },
+      ];
+      
+      setQuotes(mockQuotes);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleOpenRouterSelect = (quote: RateQuote) => {
@@ -168,9 +211,31 @@ export default function RatesPage() {
 
   const handleSubmitContact = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate API submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setSubmitted(true);
+    
+    try {
+      // Build lead submission data matching backend DTO
+      const leadData: LeadSubmission = {
+        email: contactInfo.email,
+        phone: contactInfo.phone,
+        name: contactInfo.name,
+        pickupAddress: contactInfo.pickupAddress,
+        quoteSessionId,
+        shipmentDetails: selectedQuote ? {
+          quoteId: selectedQuote.id,
+          carrierName: selectedQuote.carrierName,
+          serviceName: selectedQuote.serviceName,
+          totalCost: selectedQuote.totalCost,
+          currency: selectedQuote.currency,
+          transitDays: selectedQuote.transitDays,
+        } : undefined,
+      };
+
+      await ApiService.submitLead(leadData);
+      setSubmitted(true);
+    } catch (err) {
+      console.error('Error submitting lead:', err);
+      alert('Failed to submit your request. Please try again or contact us directly.');
+    }
   };
 
   const originCities = CITIES[originCountry] || [];
@@ -392,8 +457,8 @@ export default function RatesPage() {
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={isGuaranteed}
-                onChange={(e) => setIsGuaranteed(e.target.checked)}
+                checked={isHighValue}
+                onChange={(e) => setIsHighValue(e.target.checked)}
                 className="w-4 h-4 text-accent rounded focus:ring-accent"
               />
               <span className="text-sm">
@@ -404,8 +469,8 @@ export default function RatesPage() {
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={hasFoodSupplements}
-                onChange={(e) => setHasFoodSupplements(e.target.checked)}
+                checked={containsFoodOrSupplements}
+                onChange={(e) => setContainsFoodOrSupplements(e.target.checked)}
                 className="w-4 h-4 text-accent rounded focus:ring-accent"
               />
               <span className="text-sm">
@@ -423,6 +488,14 @@ export default function RatesPage() {
             {isLoading ? 'Checking Rates...' : 'Show Rates'}
           </button>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            <p className="font-medium">⚠️ {error}</p>
+            <p className="text-sm mt-1">Showing sample rates while we connect to the backend.</p>
+          </div>
+        )}
 
         {/* Results */}
         {quotes && (
