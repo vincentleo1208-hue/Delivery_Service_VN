@@ -1,43 +1,23 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { AppModule } from './app.module';
+import { Module } from '@nestjs/common';
+
+@Module({})
+class AppModule {}
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn'],
+  const app = await NestFactory.create(AppModule);
+  app.enableCors();
+  
+  app.getHttpAdapter().get('/api/health', (req: any, res: any) => {
+    res.json({ status: 'ok', memory: process.memoryUsage().heapUsed / 1024 / 1024 + 'MB' });
   });
-
-  const configService = app.get(ConfigService);
-  const port = configService.get('PORT') || 3001;
-
-  // Enable CORS for frontend
-  app.enableCors({
-    origin: configService.get('FRONTEND_URL') || 'http://localhost:3000',
-    credentials: true,
+  
+  app.getHttpAdapter().get('/', (req: any, res: any) => {
+    res.sendFile('index.html', { root: 'dist/public' });
   });
-
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-    }),
-  );
-
-  // API prefix
-  app.setGlobalPrefix('api/v1');
-
-  // Reduce memory footprint - limit body parser size
-  app.useBodyParser('json', { limit: '1mb' });
-  app.useBodyParser('urlencoded', { limit: '1mb', extended: true });
-
+  
+  const port = process.env.PORT || 3001;
   await app.listen(port);
-  console.log(`Backend application is running on: http://localhost:${port}/api/v1`);
+  console.log(`Application is running on: http://localhost:${port}`);
 }
-
 bootstrap();

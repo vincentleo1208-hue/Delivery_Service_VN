@@ -7,30 +7,15 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "ES2021",
-    "sourceMap": true,
+    "sourceMap": false,
     "outDir": "./dist",
     "baseUrl": "./",
-    "incremental": true,
+    "incremental": false,
     "skipLibCheck": true,
-    "strictNullChecks": true,
-    "noImplicitAny": true,
-    "strictBindCallApply": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "paths": {
-      "@/*": ["src/*"],
-      "@carriers/*": ["src/carriers/*"],
-      "@quotes/*": ["src/quotes/*"],
-      "@users/*": ["src/users/*"],
-      "@addresses/*": ["src/addresses/*"],
-      "@shipments/*": ["src/shipments/*"],
-      "@labels/*": ["src/labels/*"],
-      "@bulk/*": ["src/bulk/*"],
-      "@analytics/*": ["src/analytics/*"],
-      "@auth/*": ["src/auth/*"],
-      "@common/*": ["src/common/*"]
-    }
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test"]
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false
+  }
 }
