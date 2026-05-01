@@ -5,7 +5,8 @@ node_modules/
 # Build artifacts
 dist/
 build/
-target/
+.next/
+out/
 
 # Python cache
 __pycache__/
@@ -16,22 +17,37 @@ __pycache__/
 # Environment variables
 .env
 .env.local
-.env.*
+*.env.*
 
 # IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
-*.tmp
 
 # Logs
 *.log
 
-# Coverage
-coverage/
-htmlcov/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
 .coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/modules/
 
 # MyPy
 .mypy_cache/
