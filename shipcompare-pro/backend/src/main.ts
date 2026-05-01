@@ -4,7 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn'],
+  });
 
   const configService = app.get(ConfigService);
   const port = configService.get('PORT') || 3001;
@@ -29,6 +31,10 @@ async function bootstrap() {
 
   // API prefix
   app.setGlobalPrefix('api/v1');
+
+  // Reduce memory footprint - limit body parser size
+  app.useBodyParser('json', { limit: '1mb' });
+  app.useBodyParser('urlencoded', { limit: '1mb', extended: true });
 
   await app.listen(port);
   console.log(`Backend application is running on: http://localhost:${port}/api/v1`);
